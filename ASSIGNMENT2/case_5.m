@@ -1,22 +1,25 @@
-clc; clear all ; close all;
+ clear all ; close all;
 % Dimension
-Nx = 60;
-Ny = 60;
+Nx = 40;
+Ny = 40;
+rx = 1/1.05;
+ry = 1.0;
 L = 1;
 H = 0.5;
 tolerance = 1e-6;
 max_time = 10000;
 
 
-[X_n , Y_n , gx, gy , dx , dy ] = meshgen(L, H ,Nx, Ny , 1/1.0 , 1/1.00);
+[X_n , Y_n , gx, gy , dx , dy ] = meshgen(L, H ,Nx, Ny , rx , ry);
 Y_c = Y_n( 2:end-1); X_c = X_n(2:end-1);
 x_coord = X_n ; y_coord = Y_n;
 Nx_n = Nx  + 2;
 Ny_n = Ny + 2;
 
+
 [X1, Y1] = meshgrid(X_n, Y_n);
 [x1 , y1 ] = meshgrid( gx , gy ) ;
-figure
+figure(5);
 plot(x1, gy, color = 'blue') ; hold on;
 plot(gx, y1' , color = 'blue') ;
 xlabel('Lx')
@@ -24,6 +27,8 @@ ylabel("Ly")
 
 %Plotting the node points
 plot(X1, Y_n,'r.');
+
+
 
 %%
 area = zeros(length(dx) , length(dy));
@@ -47,9 +52,7 @@ k = @(x,y) 16 .* (y./H + 1);
 %------------------ Temperature Boundary Conditions ----------------
 
 T1_fun= @(x,y) 15;
-%T2_fun = @(x,y) 5 .*( 1 - y ./H) + 15.*sin(pi .*y ./H  );
 T2_fun = @(x,y) 5 .*( 1 - y ./H) + 15.*sin(pi .*y ./H  );
-
 T3_fun = @(x,y) 10;
 T4_fun = @(x,y) 10; % need not come here
 
@@ -63,7 +66,7 @@ T(:,:) = T_start ;
 T(:, 1) = T1_fun(x_coord,0);  % BOTTOM
 T(end, :) = T2_fun(L, y_coord); % RIGHT
 T(:, end) = T3_fun( x_coord, H  ) ; % TOP
-T(1, :) = T4_fun( 0, y_coord ) ; % left boundary
+T(1, :) = T4_fun( 0, y_coord ) ; % left boundary -- Will be updated later in iteration!
 
 
 
@@ -78,11 +81,14 @@ end
 time_passed = 1 ;
 
 %______ Gauss Seidel Iteration________________
-curr_iter = 1;
+curr_iter = 1; 
+
+F = 1.5;
 tic;
-while time_passed < max_time
+while time_passed(end) < max_time
     R_max = 0;
     T_old = T;
+    R_sum = 0;
     
     
     for i_n =  2 : Nx_n -1
@@ -151,44 +157,43 @@ while time_passed < max_time
             T(i_n, j_n) = T_cell_new; % Update the temperature field
             %%%%%%%%%%%%%%%%%%%%%%%% CHECK HERE>>> OLD OR NEW$$$$$$$$$$$
             cell_residual = aE * T_old(i_n + 1 ,j_n ) + aW * T_old(i_n -1 , j_n) + aN * T_old(i_n , j_n+1 ) + aS* T_old(i_n,j_n-1) + S* cell_area - aP*T_old(i_n,j_n);
-            R_max = max(R_max, abs(cell_residual)); % Update the maximum residual
-            if mod(curr_iter,100) == 0
-            fprintf("Residual %e \n",R_max);
-            end
+            R_sum = R_sum + abs(cell_residual);
+            R_max = max(R_max, abs(cell_residual)); 
 
 
-            time_passed = toc;
         end
     end
-
-    %updating the boundary conditoins again to be force it
-    T(:, 1) = T1_fun(x_coord,0);  % BOTTOM
-    % T(end, :) = T2_fun(L, y_coord); % RIGHT
     
-    for j = 1:Ny_n
- 
-        q_B4 = +5000;                  % prescribed heat flux
-        T(end, j) = T(end-1, j) - q_B4*( X_n(end) - X_n(end-1)  )/ke;                     %%%%%%%%%%%%%%%%%%%%%%%YOFKSHIFKJBNSDIKJSBIKVSNFVIKSRHU
-    end
-
-
+    
+    time_passed = toc;
+ % _________ Updating the boundary conditions _________________________
+    T(:, 1) = T1_fun(x_coord,0);  % BOTTOM
+    T(end, :) = T2_fun(L, y_coord); % RIGHT
     T(:, end) = T3_fun( x_coord, H  ) ; % TOP
     T(1, :)= T(2,:);
+    % for j = 1:Ny_n                 % Left
+    %     q_B4 = +5000;                  % prescribed heat flux
+    %     T(end, j) = T(end-1, j) - q_B4*( X_n(end) - X_n(end-1)  )/ke;                     %%%%%%%%%%%%%%%%%%%%%%%YOFKSHIFKJBNSDIKJSBIKVSNFVIKSRHU
+    % end
 
 
-Residual(curr_iter) = R_max;
+
+
+
+    if mod(curr_iter,1000) == 0
+        %fprintf("Residual %e  , Iteration number : %d , Time Elapsed : %f \n", R_sum,curr_iter, time_passed);
+    end
+Residual(curr_iter) = R_sum;
 % Check for convergence
-    if R_max < tolerance
-        fprintf("Convergence achieved after %d iteratioons with residual %e \n",curr_iter , R_max);
+    if R_sum/F < tolerance
+        fprintf("For %d x %d mesh , grx-%.2f Convergence achieved after %d iteratioons with residual %e . Time Taken :%f  \n", Nx,Ny,rx,curr_iter , R_sum/F ,time_passed);
      
-        break; % Exit the loop if the maximum residual is within the tolerance
+        break; 
     end
     
-    if time_passed > max_time
-        fprintf("Solver is too slow , Residual reached %e  \n exiting...\n",R_max);
+    if time_passed(end) > max_time
+        fprintf("Solver is  slow , Residual reached %e  \n exiting...\n with time %f ",R_max , time_passed);
     end
-
-
 
     curr_iter = curr_iter + 1; % Increment the iteration count
 
@@ -229,51 +234,76 @@ for i_cv = 1:Nx
     end
 end
 
-%  k at  centers
-k_C = zeros(Nx, Ny);
+%  k at  nodes
+k_n = zeros(Nx, Ny);
 for i = 1:Nx_n
     for j = 1:Ny_n
-        k_C(i, j) = k(X_n(i), Y_n(j));
+        k_n(i, j) = k(X_n(i), Y_n(j));
    
     end
 end
 
-qx = - (k_C .* dTdx); 
-qy = - (k_C .* dTdy);
+qx = - (k_n .* dTdx); 
+qy = - (k_n .* dTdy);
 
 
 figure(3);
 contourf(X, Y, T', 25);hold on;
 colorbar;
 quiver(X, Y, qx', qy','Color','red'); 
-
 axis equal tight;
 title('Heat Flux Vector Plot ');
 xlabel('x');
 ylabel('y');
 
-% Print some useful info
-T_max = max(T_interior(:));
-T_min = min(T_interior(:));
-fprintf('T_max = %.6f, T_min = %.6f\n', T_max, T_min);
+% Print some useful info for rough comp
+T_max = max(T(:));
+T_min =  min(T(:));
 
+% --- Find index of centreline in x-direction ---
+x_mid = max(X_n(:)) / 2;                     % geometric midpoint
+[~, i_cen] = min(abs(X_n(:,1) - x_mid));     % index of closest x to x_mid
+
+% --- Extract temperatures along centreline ---
+T_cenline = T(i_cen, :);   % temperatures along y at x = centre
+
+% --- Average temperature along centreline ---
+T_avg_cenline = mean(T_cenline);
+
+fprintf('Average temperature along vertical centreline = %.4f\n', T_avg_cenline);
+
+
+fprintf('T_max = %.6f, T_min = %.6f\n', T_max, T_min);
+fprintf("----------------------------------------------------------------------\n")
 % Optionally show a few cross-sections
 figure(4);
-plot(Y_c, T_interior(round(Ny/2), :), '-o'); % centerline vs y
-xlabel('x');
-ylabel('T (centerline y)');
-title('Centerline Temperature vs x');
+plot(T(round(Ny/2), :) ,Y_n,  '-o'); % centerline vs y
+ylabel('y');
+xlabel('T (centerline y)');
+title('Centerline Temperature vs y');
 
-% End of script
+[X1, Y1] = meshgrid(X_n, Y_n);
+[x1 , y1 ] = meshgrid( gx , gy ) ;
+figure(5);
+plot(x1, gy, color = 'blue') ; hold on;
+plot(gx, y1' , color = 'blue') ;
+xlabel('Lx')
+ylabel("Ly")
+
+%Plotting the node points
+plot(X1, Y_n,'r.');
+
 
 
 %%
 
-save(sprintf('T_ eq %d X %d.mat', Nx,Ny),"T","X_n","Y_n","qx",'qy');
+save(sprintf('T %d X %d, grx = %0.2f .mat',  Nx,Ny,rx),"T","X_n","Y_n","qx",'qy');
 
 % Optionally show a few cross-sections
-%figure(5);
+figure(6);
 plot(X_n, T(:,round(Ny/2) ), '-o');hold on; % centerline vs x
 xlabel('x');
 ylabel('T (centerline y)');
 title('Centerline Temperature vs x');
+
+

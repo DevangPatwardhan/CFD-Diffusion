@@ -1,7 +1,7 @@
 % I have used AI for repetitive coding here
 
 % Load 10x10
-D10 = load("T_ 10 X 10.mat");
+D10 = load("T_ eq 10 X 10.mat");
 T10  = D10.T;
 Xn10 = D10.X_n;
 Yn10 = D10.Y_n;
@@ -9,7 +9,7 @@ qx10 = D10.qx;
 qy10 = D10.qy;
 
 % Load 20x20
-D20 = load("T_ 20 X 20.mat");
+D20 = load("T_ eq 20 X 20.mat");
 T20  = D20.T;
 Xn20 = D20.X_n;
 Yn20 = D20.Y_n;
@@ -17,7 +17,7 @@ qx20 = D20.qx;
 qy20 = D20.qy;
 
 % Load 30x30
-D30 = load("T_ 30 X 30.mat");
+D30 = load("T_ eq 30 X 30.mat");
 T30  = D30.T;
 Xn30 = D30.X_n;
 Yn30 = D30.Y_n;
@@ -25,7 +25,7 @@ qx30 = D30.qx;
 qy30 = D30.qy;
 
 % Load 40x40
-D40 = load("T_ 40 X 40.mat");
+D40 = load("T_ eq 40 X 40.mat");
 T40  = D40.T;
 Xn40 = D40.X_n;
 Yn40 = D40.Y_n;
@@ -42,16 +42,16 @@ qy80 = D80.qy;
 
 
 % Load all variables
-data10 = load("T_ 10 X 10.mat"); 
+data10 = load("T_ eq 10 X 10.mat"); 
 T10 = data10.T; Xn10 = data10.X_n; Yn10 = data10.Y_n;
 
-data20 = load("T_ 20 X 20.mat"); 
+data20 = load("T_ eq 20 X 20.mat"); 
 T20 = data20.T; Xn20 = data20.X_n; Yn20 = data20.Y_n;
 
-data30 = load("T_ 30 X 30.mat"); 
+data30 = load("T_ eq 30 X 30.mat"); 
 T30 = data30.T; Xn30 = data30.X_n; Yn30 = data30.Y_n;
 
-data40 = load("T_ 40 X 40.mat"); 
+data40 = load("T_ eq 40 X 40.mat"); 
 T40 = data40.T; Xn40 = data40.X_n; Yn40 = data40.Y_n;
 
 data80 = load("T_ 80 X 80.mat"); 

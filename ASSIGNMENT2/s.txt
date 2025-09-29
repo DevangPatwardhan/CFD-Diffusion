@@ -1,0 +1,16 @@
+Convergence achieved after 45949 iteratioons with residual 9.999120e-04 . Time Taken :165.613134  
+Average temperature along vertical centreline = 11.3430
+T_max = 15.000000, T_min = -17.112554
+
+
+Convergence achieved after 6525 iteratioons with residual 9.991209e-04 . Time Taken :3.358514  
+Average temperature along vertical centreline = 11.2988
+T_max = 15.000000, T_min = -17.210246
+
+
+Average temperature along vertical centreline = 11.3715
+T_max = 15.000000, T_min = -17.169217
+
+Convergence achieved after 2923 iteratioons with residual 9.985559e-04 
+Average temperature along vertical centreline = 11.2894
+T_max = 15.000000, T_min = -17.300193
